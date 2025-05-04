@@ -1,64 +1,35 @@
 const Otp = require('../models/Otp');
 const crypto = require('crypto');
 const moment = require('moment');
-const twilio = require('twilio');
-const nodemailer = require('nodemailer');
-
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// Configure Nodemailer transporter
-const mailTransporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const EmailProvider = require('./provider/EmailProvider');
+const SmsProvider = require('./provider/SmsProvider');
 
 class OtpService {
-  static async generateOtp(userId, type = 'sms') {
-    // Create 6-digit code
-    const code = crypto.randomInt(100000, 999999).toString();
-    const expiresAt = moment().add(5, 'minutes').toDate();
-
-    // Persist OTP
-    const otp = await Otp.create({ userId, code, type, expiresAt });
-    return otp;
+  constructor(config) {
+    this.emailProvider = new EmailProvider(config.providers.email);
+    this.smsProvider = new SmsProvider(config.providers.sms);
+    this.ttl = config.providers.otpTtl || 300000; // in ms
   }
 
-  static async sendOtp(otp, destination) {
-    if (otp.type === 'sms') {
-      await twilioClient.messages.create({
-        body: `Your verification code is ${otp.code}`,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: destination,
-      });
-    } else if (otp.type === 'email') {
-      await mailTransporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: destination,
-        subject: 'Your Verification Code',
-        text: `Your verification code is ${otp.code}`,
-      });
+  async generateAndSend(userId, destination, type = 'email') {
+    const code = crypto.randomInt(100000, 999999).toString();
+    const expiresAt = moment().add(this.ttl, 'milliseconds').toDate();
+    await Otp.create({ userId, code, type, expiresAt });
+
+    if (type === 'sms') {
+      return this.smsProvider.send({ to: destination, body: `Your OTP is ${code}` });
+    } else {
+      return this.emailProvider.send({ to: destination, subject: 'Your OTP Code', text: `Your OTP is ${code}` });
     }
   }
 
-  static async verifyOtp(userId, code, type = 'sms') {
-    const otp = await Otp.findOne({ userId, code, type, consumed: false });
-    if (!otp) throw new Error('Invalid or expired OTP');
-
-    // Check expiration
-    if (otp.expiresAt < new Date()) throw new Error('OTP has expired');
-
-    // Mark consumed
-    otp.consumed = true;
-    await otp.save();
-
+  async verify(userId, code, type = 'email') {
+    const record = await Otp.findOne({ userId, code, type, consumed: false });
+    if (!record || record.expiresAt < new Date()) {
+      throw new Error('Invalid or expired OTP');
+    }
+    record.consumed = true;
+    await record.save();
     return true;
   }
 }
