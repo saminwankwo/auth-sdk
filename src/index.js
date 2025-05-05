@@ -1,20 +1,50 @@
-require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+const { loadConfig } = require('./config/loader');
+const logger = require('./utils/logger');
+const rateLimiter = require('./middleware/rateLimiter');
+const createAuthRoutes = require('./routes/auth.routes');
 
-const authRoutes = require('./controllers/auth.routes');
-const { connectDB } = require('./utils/db');
+class AuthSDK {
+  constructor(options = {}) {
+    this.config = loadConfig(options.env || process.env);
+    this.app = express();
+    this.plugins = [];
+  }
 
-(async () => {
-  await connectDB();
-  const app = express();
+  registerPlugin(plugin) {
+    if (typeof plugin.init === 'function') {
+      plugin.init(this);
+      this.plugins.push(plugin.name || plugin);
+    }
+    return this;
+  }
 
-  app.use(helmet());
-  app.use(express.json());
-  app.use('/api/auth', rateLimit({ windowMs: 1 * 60 * 1000, max: 10 }));
-  app.use('/api/auth', authRoutes);
+  setupMiddlewares() {
+    this.app.use(helmet());
+    this.app.use(express.json());
+    this.app.use(morgan(this.config.logging.format));
+    this.app.use('/health', (req, res) => res.json({ status: 'ok' }));
+    return this;
+  }
 
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => console.log(`Auth SDK running on port ${port}`));
-})();
+  mountRoutes() {
+    const authRouter = createAuthRoutes(this.config);
+    this.app.use(this.config.basePath, rateLimiter(this.config.rateLimit), authRouter);
+    return this;
+  }
+
+  start(port = this.config.port) {
+    this.server = this.app.listen(port, () =>{
+      logger.info(`AuthSDK listening on port ${port}`);
+    });
+    return this;
+  }
+
+  getServer() {
+    return this.server;
+  }
+}
+
+module.exports = AuthSDK;

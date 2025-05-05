@@ -1,4 +1,4 @@
-const { authConfigSchema } = require('./schemas');
+const { authConfigSchema } = require('./schema');
 const Joi = require('joi');
 
 function loadConfig(env) {
