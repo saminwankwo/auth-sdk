@@ -27,6 +27,26 @@ const authConfigSchema = Joi.object({
       options: Joi.object().default({})
     }).required()
   }).required(),
+  apiKey: Joi.object({
+    require: Joi.boolean().default(false)
+  }).default({ require: false }),
+    cors: Joi.object({
+        origin: Joi.string().default('*'),
+        methods: Joi.string().default('GET,HEAD,PUT,PATCH,POST,DELETE'),
+        preflightContinue: Joi.boolean().default(false),
+        optionsSuccessStatus: Joi.number().default(204)
+    }).default({}),
+    helmet: Joi.object({
+        contentSecurityPolicy: Joi.boolean().default(false),
+        dnsPrefetchControl: Joi.boolean().default(true),
+        frameguard: Joi.boolean().default(true),
+        hidePoweredBy: Joi.boolean().default(true),
+        hsts: Joi.boolean().default(true),
+        ieNoOpen: Joi.boolean().default(true),
+        noSniff: Joi.boolean().default(true),
+        xssFilter: Joi.boolean().default(true)
+    }).default({}),
+    
   plugins: Joi.array().items(Joi.string()).default([])
 });
 

@@ -25,6 +25,9 @@ class AuthSDK {
     this.app.use(helmet());
     this.app.use(express.json());
     this.app.use(morgan(this.config.logging.format));
+    if (this.config.apiKey.require) {
+      this.app.use(apiKeyMiddleware());
+    }
     this.app.use('/health', (req, res) => res.json({ status: 'ok' }));
     return this;
   }
