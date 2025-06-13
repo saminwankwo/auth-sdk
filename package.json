@@ -1,15 +1,38 @@
 {
   "name": "auth-sdk",
   "version": "1.0.0",
+  "description": "A scalable, plugin-driven Authentication & Authorization SDK for Express.js with JWT, API-Keys, OTP, RBAC and more",
   "main": "src/index.js",
+  
+  "files": [
+    "src"   
+  ],
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "jest --coverage"
   },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/saminwankwo/auth-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/saminwankwo/auth-sdk/issues"
+  },
+  "homepage": "https://github.com/saminwankwo/auth-sdk#readme",
+  +  "keywords": [
++    "express",
++    "authentication",
++    "authorization",
++    "jwt",
++    "otp",
++    "api-key",
++    "rbac",
++    "sdk"
++  ],
   "author": "Nwankwo Samuel",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
