@@ -1,4 +1,3 @@
-/*
 ====================================
 Quickstart & Usage Documentation
 ====================================
@@ -135,6 +134,3 @@ app.get('/protected', apiKey('read:users'), (req, res) => {
   res.json({ data: 'Secure data' });
 });
 ```
-
-
-*/
