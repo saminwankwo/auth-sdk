@@ -9,9 +9,9 @@ A plug-and-play authentication & authorization SDK built for Express application
 ### 📦 Installation
 
 ```bash
-npm install @samuelnwankwo/auth-sdk
+npm install @saminwankwo/auth-sdk
 # or
-yarn add @samuelnwankwo/auth-sdk
+yarn add @saminwankwo/auth-sdk
 ```
 
 ---
