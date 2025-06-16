@@ -1,5 +1,5 @@
 {
-  "name": "auth-sdk",
+  "name": "@saminwankwo/auth-sdk",
   "version": "1.0.0",
   "description": "A scalable, plugin-driven Authentication & Authorization SDK for Express.js with JWT, API-Keys, OTP, RBAC and more",
   "main": "src/index.js",
